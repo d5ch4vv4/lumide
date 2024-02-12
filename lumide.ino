@@ -139,7 +139,7 @@ void setup() {
 
 void loop() {
 
-  if (BTSerial.available()) {
+  while (BTSerial.available()) {
 
     char received = BTSerial.read();		// Define at top?
 
@@ -234,13 +234,14 @@ void loop() {
 			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("Rainbow is activated");
     }
-		else if (received == '1') {
 
 		// Setup for moving Effects
+		else if (received == '1') {
 			fx = 1;
       Serial.println("1");
 			UpdateInitials (EEPROM_ADDRESS, received);
-    } else if (received == '2') {
+    }
+		else if (received == '2') {
       currentColor = 19;
       Serial.println("2");
       EEPROM.write(EEPROM_ADDRESS, received);
@@ -271,110 +272,111 @@ void loop() {
       EEPROM.write(EEPROM_ADDRESS, received);
       last_color = received;      
     }
-  }
 // ================================
 	// Switch the following to cases?
 
-  if(fx == 1){
-		// CHSV(uint8_t input_hue, uint8_t input_saturation,
-		//		  uint8_t input_value)
-		// input_value = brightness
-		// -> Representation of an HSV pixel
-    leds[currentLed] = CHSV(millis() / 7, 255, 255);
-    FastLED.show();
-    currentLed = (currentLed + 1) % NUM_LEDS;
-    delay(50);
-  }
-
-  if(currentColor == 19){
-		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CHSV(hue + (i * 256 / NUM_LEDS), 255, 255);
-		}
-		FastLED.show();
-		hue++;
-		if (hue >= 256) {
-			hue = 0;
-		}
-		fadeToBlackBy(leds, NUM_LEDS, fadeAmount);
-		delay(10);
-  }
-
-  if(currentColor == 20){
-    fadeToBlackBy(leds, NUM_LEDS, 10);
-    for (int i = 0; i < NUM_LEDS; i++){
-      leds[i] = ColorFromPalette(palette, millis() / 30 + i * 2, 255);
-    }
-    FastLED.show();
-    delay(30);
-  }
-
-  if (currentColor == 21){
-    static uint8_t hue = 0;							// why defined again?
-    for (int i = 0; i < NUM_LEDS; i++){
-      leds[i] = CHSV(hue, 255, 255);
-    }
-    FastLED.show();
-    hue++;
-    delay(10);
-  }
-
-  if (currentColor == 22){
-    static uint8_t hue = 0;
-    for (int i = 0; i < NUM_LEDS; i++){
-      leds[i] = CHSV(hue, 255, 255);
-    }
-    FastLED.show();
-    hue++;
-    delay(Color_Delay);
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[i] = CRGB::Black;
-      FastLED.show();
-      delay(Chase_Delay);
-    }
-  }
-
-  if (currentColor == 23){
-    fill_solid(leds, NUM_LEDS, CRGB::Black);
-    for (int i = 0; i < NUM_LEDS; i++) {
-      leds[currentLed23] = CHSV(millis() / 7, 255, 255);
-      FastLED.show();
-      delay(delayTime);
-      currentLed23 = (currentLed23 + 1) % NUM_LEDS;
-      leds[i] = CRGB::Black;
-    }
-
-    for (int j = 255; j >= 0; j -= fadeAmount23) {
-      for (int k = 0; k < NUM_LEDS; k++) {
-        leds[k].fadeToBlackBy(fadeAmount23);
-        leds[k].maximizeBrightness(j);
-      }
-      FastLED.show();
-      delay(delayTime);
-    }
-  }
-
-  if (currentColor == 24){
-  	CRGB wipeColor = CRGB::Blue;
-  	for(int i = 0; i < NUM_LEDS; i++) {
-    	leds[i] = wipeColor;
-    	FastLED.show();
-    	delay(50);
-  	}
-
-  	if(!animationRunning){				// ???
-    	return;
-		}
-		wipeColor = CRGB::Green;
-
-		for(int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = wipeColor;
+		if(currentColor == 18){
+			// CHSV(uint8_t input_hue, uint8_t input_saturation,
+			//		  uint8_t input_value)
+			// input_value = brightness
+			// -> Representation of an HSV pixel
+			leds[currentLed] = CHSV(millis() / 7, 255, 255);
 			FastLED.show();
+			currentLed = (currentLed + 1) % NUM_LEDS;
 			delay(50);
 		}
-
-		if(!animationRunning){
-			return;
+	/*
+		if(currentColor == 19){
+			for (int i = 0; i < NUM_LEDS; i++) {
+				leds[i] = CHSV(hue + (i * 256 / NUM_LEDS), 255, 255);
+			}
+			FastLED.show();
+			hue++;
+			if (hue >= 256) {
+				hue = 0;
+			}
+			fadeToBlackBy(leds, NUM_LEDS, fadeAmount);
+			delay(10);
 		}
+
+		if(currentColor == 20){
+			fadeToBlackBy(leds, NUM_LEDS, 10);
+			for (int i = 0; i < NUM_LEDS; i++){
+				leds[i] = ColorFromPalette(palette, millis() / 30 + i * 2, 255);
+			}
+			FastLED.show();
+			delay(30);
+		}
+
+		if (currentColor == 21){
+			static uint8_t hue = 0;							// why defined again?
+			for (int i = 0; i < NUM_LEDS; i++){
+				leds[i] = CHSV(hue, 255, 255);
+			}
+			FastLED.show();
+			hue++;
+			delay(10);
+		}
+
+		if (currentColor == 22){
+			static uint8_t hue = 0;
+			for (int i = 0; i < NUM_LEDS; i++){
+				leds[i] = CHSV(hue, 255, 255);
+			}
+			FastLED.show();
+			hue++;
+			delay(Color_Delay);
+			for (int i = 0; i < NUM_LEDS; i++) {
+				leds[i] = CRGB::Black;
+				FastLED.show();
+				delay(Chase_Delay);
+			}
+		}
+
+		if (currentColor == 23){
+			fill_solid(leds, NUM_LEDS, CRGB::Black);
+			for (int i = 0; i < NUM_LEDS; i++) {
+				leds[currentLed23] = CHSV(millis() / 7, 255, 255);
+				FastLED.show();
+				delay(delayTime);
+				currentLed23 = (currentLed23 + 1) % NUM_LEDS;
+				leds[i] = CRGB::Black;
+			}
+
+			for (int j = 255; j >= 0; j -= fadeAmount23) {
+				for (int k = 0; k < NUM_LEDS; k++) {
+					leds[k].fadeToBlackBy(fadeAmount23);
+					leds[k].maximizeBrightness(j);
+				}
+				FastLED.show();
+				delay(delayTime);
+			}
+		}
+
+		if (currentColor == 24){
+			CRGB wipeColor = CRGB::Blue;
+			for(int i = 0; i < NUM_LEDS; i++) {
+				leds[i] = wipeColor;
+				FastLED.show();
+				delay(50);
+			}
+
+			if(!animationRunning){				// ???
+				return;
+			}
+			wipeColor = CRGB::Green;
+
+			for(int i = 0; i < NUM_LEDS; i++) {
+				leds[i] = wipeColor;
+				FastLED.show();
+				delay(50);
+			}
+
+			if(!animationRunning){
+				return;
+			}
+		}
+		*/
 	}
 }
 
