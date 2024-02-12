@@ -20,6 +20,7 @@ CRGBPalette16 palette = RainbowColors_p;
 boolean animationRunning = true;			// USED FOR WHAT AGAIN?
 SoftwareSerial BTSerial(0, 1); // RX | TX
 char last_color = 'r';
+int fx = 0;										// Used to start moving FX
 
 int currentColor = 0;
 int currentLed = 0;
@@ -103,7 +104,7 @@ void setup() {
 			}
       break;
 
-		// ???	
+		// Moving Effects
     case '1':
       currentColor = 18;
       break;
@@ -142,204 +143,103 @@ void loop() {
 
     char received = BTSerial.read();		// Define at top?
 
+		// Static one color
     if (received == 'r') {
-			EmitMonoColor (CRGB::Red, 0);
+			EmitMonoColor (CRGB::Red);
 			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Red");
     }
 		else if (received == 'g') {
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Green;
-      }
-      currentColor = 1;
-      FastLED.show();
+			EmitMonoColor (CRGB::Green);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Green");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;      
-    } else if (received == 'b') {
-// Setting LEDs to mono blue
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Blue;
-      }
-      currentColor = 2;
-      FastLED.show();
+    }
+		else if (received == 'b') {
+			EmitMonoColor (CRGB::Blue);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Blue");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'c') {
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Cyan;
-      }
-      currentColor = 3;
-      FastLED.show();
+    } 
+		else if (received == 'c') {
+			EmitMonoColor (CRGB::Cyan);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      last_color = received; 
       Serial.println("All LEDs are set to Cyan");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received; 
-    } else if (received == 'm') {
-// Setting LEDs to mono magenta
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Magenta;
-      }
-      currentColor = 4;
-      FastLED.show();
+    }
+		else if (received == 'm') {
+			EmitMonoColor (CRGB::Magenta);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Magenta");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received; 
-    } else if (received == 'v') {
-// Setting LEDs to mono violet
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Violet;
-      }
-      currentColor = 5;
-      FastLED.show();
+    }
+		else if (received == 'v') {
+			EmitMonoColor (CRGB::Violet);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Violet");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'o') {
-// Setting LEDs to mono orange
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Orange;
-      }
-      currentColor = 6;
-      FastLED.show();
+    }
+		else if (received == 'o') {
+			EmitMonoColor (CRGB::Orange);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Orange");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'y') {
-// Setting LEDs to mono yellow
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Yellow;
-      }
-      currentColor = 7;
-      FastLED.show();
+    }
+		else if (received == 'y') {
+			EmitMonoColor (CRGB::Yellow);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Yellow");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'w') {
-// Setting LEDs to mono white
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::White;
-      }
-      currentColor = 8;
-      FastLED.show();
+    }
+		else if (received == 'w') {
+			EmitMonoColor (CRGB::White);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to White");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'q') {
-// Setting LEDs to dual yellow red
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Yellow;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Red;
-       }
-      }
-      currentColor = 9;
-      FastLED.show();
-      Serial.println("LEDs are set to Yellow/Red");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'e') {
-// Setting LEDs to dual red blue
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Red;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Blue;
-       }
-      }
-      currentColor = 10;
-      FastLED.show();
-      Serial.println("LEDs are set to Red/Blue");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 't') {
-// Setting LEDs to dual blue green
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Blue;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Green;
-       }
-      }
-      currentColor = 11;
-      FastLED.show();
-      Serial.println("LEDs are set to Blue/Green");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'z') {
-// Setting LEDs to dual magenta red
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Magenta;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Red;
-       }
-      }
-      currentColor = 12;
-      FastLED.show();
-      Serial.println("LEDs are set to Magenta/Red");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'u') {
-// Setting LEDs to dual red green
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Red;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Green;
-       }
-      }
-      currentColor = 13;
-      FastLED.show();
-      Serial.println("LEDs are set to Red/Green");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'i') {
-// Setting LEDs to dual yellow magenta
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 6) {
-         leds[i] = CRGB::Yellow;
-       }
-       else if (i >= 6 && i < 12) {
-         leds[i] = CRGB::Magenta;
-       }
-      }
-      currentColor = 14;
-      FastLED.show();
-      Serial.println("LEDs are set to Yellow/Magenta");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'p'){
-// Setting LEDs to rainbow
-      fill_rainbow(leds, NUM_LEDS, 0, 7);
-      currentColor = 15;
-      FastLED.show();
-      delay(10);
-      Serial.println("Rainbow is activated");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == 'x') {
-// Setting LEDs to black
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Black;
-      }
-      currentColor = 17;
-      FastLED.show();
+    }
+		else if (received == 'x') {
+			EmitMonoColor (CRGB::Black);
+			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("All LEDs are set to Black");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '1') {
-// Setting up for moving Effects
-      currentColor = 18;
+    }
+
+		// Static two colors
+		else if (received == 'q') {
+			EmitDualHorizontal (CRGB::Yellow, CRGB::Red);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Yellow/Red");
+    }
+		else if (received == 'e') {
+			EmitDualHorizontal (CRGB::Red, CRGB::Blue);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Red/Blue");
+    }
+		else if (received == 't') {
+			EmitDualHorizontal (CRGB::Blue, CRGB::Green);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Blue/Green");
+    }
+		else if (received == 'z') {
+			EmitDualHorizontal (CRGB::Magenta, CRGB::Red);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Magenta/Red");
+    }
+		else if (received == 'u') {
+			EmitDualHorizontal (CRGB::Red, CRGB::Green);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Red/Green");
+    }
+		else if (received == 'i') {
+			EmitDualHorizontal (CRGB::Yellow, CRGB::Magenta);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("LEDs are set to Yellow/Magenta");
+    }
+
+		// Rainbow
+		else if (received == 'p'){
+			EmitRainbow (leds, NUM_LEDS, 0, 7);
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Rainbow is activated");
+    }
+		else if (received == '1') {
+
+		// Setup for moving Effects
+			fx = 1;
       Serial.println("1");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
+			UpdateInitials (EEPROM_ADDRESS, received);
     } else if (received == '2') {
       currentColor = 19;
       Serial.println("2");
@@ -375,7 +275,7 @@ void loop() {
 // ================================
 	// Switch the following to cases?
 
-  if(currentColor == 18){
+  if(fx == 1){
 		// CHSV(uint8_t input_hue, uint8_t input_saturation,
 		//		  uint8_t input_value)
 		// input_value = brightness
@@ -385,7 +285,6 @@ void loop() {
     currentLed = (currentLed + 1) % NUM_LEDS;
     delay(50);
   }
-/*
 
   if(currentColor == 19){
 		for (int i = 0; i < NUM_LEDS; i++) {
@@ -477,7 +376,6 @@ void loop() {
 			return;
 		}
 	}
-	*/
 }
 
 //----- FUNCTIONS -----//
@@ -507,14 +405,27 @@ void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
 	}
 }
 
-// All LEDs emit same color
-void EmitMonoColor (CRGB pixel_color, int current_color) {
-	setMonoColor (pixel_color);
-	FastLED.show();
-}
-
 // Update Memory and last_color
 void UpdateInitials (int eeprom_address, char value) {
 	EEPROM.update (eeprom_address, value);
 	last_color = value;
+}
+
+// All LEDs emit same color
+void EmitMonoColor (CRGB pixel_color) {
+	setMonoColor (pixel_color);
+	FastLED.show();
+}
+
+// Half of LEDs emit one color, other half another
+void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+	setDualHorizontal (pixel_color_bot, pixel_color_top);
+	FastLED.show();
+}
+
+// Emit "Rainbow"
+void EmitRainbow (CRGB *target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
+	fill_rainbow (target_array, num_leds, initial_hue, delta_hue);
+	FastLED.show();
+	delay(10);
 }
