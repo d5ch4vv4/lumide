@@ -1,3 +1,9 @@
+// HEADER COMMENT: 2DO!
+
+// Include the following before FastLED.h
+// to disable pragma messages on compile
+#define FASTLED_INTERNAL
+
 #include <FastLED.h>
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
@@ -185,11 +191,11 @@ void setup() {
       break;
 
 	 // Default
-   default:
+   	default:
       for (int i = 0; i < NUM_LEDS; i++) {
        leds[i] = CRGB::Red;
-     }
-     break;
+    }
+    break;
   }  
 
 	// Driving LED data to controller
