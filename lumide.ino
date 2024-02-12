@@ -96,8 +96,11 @@ void setup() {
 			break;
 
 		// Rainbow
-    case 'p':
-      fill_rainbow(leds, NUM_LEDS, 0, 7);
+    case 'p': {
+			int initialHue = 0;
+			int deltaHue = 7;
+      fill_rainbow(leds, NUM_LEDS, initialHue, deltaHue);
+			}
       break;
 
 		// ???	
@@ -129,8 +132,7 @@ void setup() {
     break;
   }  
 
-	// Driving LED data to controller
-	// Update controllers with current led colors
+	// Update controllers with LED colors
   FastLED.show();
 }
 
