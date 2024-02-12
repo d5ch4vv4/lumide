@@ -78,10 +78,10 @@ void setup() {
 
 			// how 0 to 50 if NUM_LEDS < 50?
       for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
+       if (i >= 0 && i < NUM_LEDS / 2) {
          leds[i] = CRGB::Yellow;
        }
-       else if (i >= 25 && i < 50) {
+       else if (i >= NUM_LEDS / 2 && i < NUM_LEDS) {
          leds[i] = CRGB::Red;
        }
       }
