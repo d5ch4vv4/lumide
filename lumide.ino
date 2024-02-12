@@ -44,54 +44,36 @@ void setup() {
   // Set up LEDs after Power On
   switch (lastColor) {
 
-		// static one color
-    case 'r':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Red;
-      }
-      break;
-    case 'g':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Green;
-      }
-      break;
-    case 'b':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Blue;
-      }
-      break;
-    case 'c':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Cyan;
-      }
-      break;
-    case 'm':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Magenta;
-      }
-      break;
-    case 'v':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Violet;
-      }
-      break;
-    case 'o':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Orange;
-      }
-      break;
-    case 'y':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Yellow;
-      }
-      break;
-    case 'w':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::White;
-      }
-      break;
+	// static one color
+	case 'r':
+		setMonoColor (CRGB::Red);
+		break;
+	case 'g':
+		setMonoColor (CRGB::Green);
+		break;
+	case 'b':
+		setMonoColor (CRGB::Blue);
+		break;
+	case 'c':
+		setMonoColor (CRGB::Cyan);
+		break;
+	case 'm':
+		setMonoColor (CRGB::Magenta);
+		break;
+	case 'v':
+		setMonoColor (CRGB::Violet);
+		break;
+	case 'o':
+		setMonoColor (CRGB::Orange);
+		break;
+	case 'y':
+		setMonoColor (CRGB::Yellow);
+		break;
+	case 'w':
+		setMonoColor (CRGB::White);
+		break;
 
-		// static two colors
+	// Two colors
     case 'q':
 
 			// how 0 to 50 if NUM_LEDS < 50?
@@ -191,10 +173,8 @@ void setup() {
       break;
 
 	 // Default
-   	default:
-      for (int i = 0; i < NUM_LEDS; i++) {
-       leds[i] = CRGB::Red;
-    }
+	default:
+		setMonoColor (CRGB::Red);
     break;
   }  
 
@@ -557,7 +537,12 @@ void stopAnimation(){						// ???
   animationRunning = false;
 }
 
-
+// Set all LEDs to a given color
+void setMonoColor (CRGB pixel_color) {
+	for (int i = 0; i < NUM_LEDS; i++) {
+		leds[i] = pixel_color;
+	}
+}
 
 
 
