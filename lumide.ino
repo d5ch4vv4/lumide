@@ -44,109 +44,60 @@ void setup() {
   // Set up LEDs after Power On
   switch (lastColor) {
 
-	// static one color
-	case 'r':
-		setMonoColor (CRGB::Red);
-		break;
-	case 'g':
-		setMonoColor (CRGB::Green);
-		break;
-	case 'b':
-		setMonoColor (CRGB::Blue);
-		break;
-	case 'c':
-		setMonoColor (CRGB::Cyan);
-		break;
-	case 'm':
-		setMonoColor (CRGB::Magenta);
-		break;
-	case 'v':
-		setMonoColor (CRGB::Violet);
-		break;
-	case 'o':
-		setMonoColor (CRGB::Orange);
-		break;
-	case 'y':
-		setMonoColor (CRGB::Yellow);
-		break;
-	case 'w':
-		setMonoColor (CRGB::White);
-		break;
+		// Static one color
+		case 'r':
+			setMonoColor (CRGB::Red);
+			break;
+		case 'g':
+			setMonoColor (CRGB::Green);
+			break;
+		case 'b':
+			setMonoColor (CRGB::Blue);
+			break;
+		case 'c':
+			setMonoColor (CRGB::Cyan);
+			break;
+		case 'm':
+			setMonoColor (CRGB::Magenta);
+			break;
+		case 'v':
+			setMonoColor (CRGB::Violet);
+			break;
+		case 'o':
+			setMonoColor (CRGB::Orange);
+			break;
+		case 'y':
+			setMonoColor (CRGB::Yellow);
+			break;
+		case 'w':
+			setMonoColor (CRGB::White);
+			break;
+		case 'x':
+			setMonoColor (CRGB::Black);
 
-	// Two colors
-    case 'q':
-
-			// how 0 to 50 if NUM_LEDS < 50?
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < NUM_LEDS / 2) {
-         leds[i] = CRGB::Yellow;
-       }
-       else if (i >= NUM_LEDS / 2 && i < NUM_LEDS) {
-         leds[i] = CRGB::Red;
-       }
-      }
-      break;
-    case 'e':
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
-         leds[i] = CRGB::Red;
-       }
-       else if (i >= 25 && i < 50) {
-         leds[i] = CRGB::Blue;
-       }
-      }
-      break;
-    case 't':
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
-         leds[i] = CRGB::Blue;
-       }
-       else if (i >= 25 && i < 50) {
-         leds[i] = CRGB::Green;
-       }
-      }
-      break;
-    case 'z':
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
-         leds[i] = CRGB::Magenta;
-       }
-       else if (i >= 25 && i < 50) {
-         leds[i] = CRGB::Red;
-       }
-      }
-      break;
-    case 'u':
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
-         leds[i] = CRGB::Red;
-       }
-       else if (i >= 25 && i < 50) {
-         leds[i] = CRGB::Green;
-       }
-      }
-      break;
-    case 'i':
-      for (int i = 0; i < NUM_LEDS; i++) {
-       if (i >= 0 && i < 25) {
-         leds[i] = CRGB::Yellow;
-       }
-       else if (i >= 25 && i < 50) {
-         leds[i] = CRGB::Magenta;
-       }
-      }
-      break;
+		// Static two colors
+		case 'q':
+			setDualHorizontal (CRGB::Yellow, CRGB::Red);
+			break;
+		case 'e':
+			setDualHorizontal (CRGB::Red, CRGB::Blue);
+			break;
+		case 't':
+			setDualHorizontal (CRGB::Blue, CRGB::Green);
+			break;
+		case 'z':
+			setDualHorizontal (CRGB::Magenta, CRGB::Red);
+			break;
+		case 'u':
+			setDualHorizontal (CRGB::Red, CRGB::Green);
+			break;
+		case 'i':
+			setDualHorizontal (CRGB::Yellow, CRGB::Magenta);
+			break;
 
 		// Rainbow
     case 'p':
       fill_rainbow(leds, NUM_LEDS, 0, 7);
-      break;
-
-		// Black
-    case 'x':
-      for (int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = CRGB::Black;
-      }
       break;
 
 		// ???	
@@ -544,6 +495,15 @@ void setMonoColor (CRGB pixel_color) {
 	}
 }
 
-
-
-
+// Set half of LEDs to one color, the other half to another
+void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+	for (int i = 0; i < NUM_LEDS; i++) {
+		// Use some factoring variable instead of /2?
+		if (i >= 0 && i < NUM_LEDS / 2) {
+			leds[i] = pixel_color_bot;
+		}
+		else {
+			leds[i] = pixel_color_top;
+		}
+	}
+}
