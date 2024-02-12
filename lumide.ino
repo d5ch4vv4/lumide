@@ -342,7 +342,7 @@ void loop() {
       EEPROM.write(EEPROM_ADDRESS, received);
       lastColor = received;
     } else if (received == '1') {
-// Setting currentColor without explanation
+// Setting up for moving Effects
       currentColor = 18;
       Serial.println("1");
       EEPROM.write(EEPROM_ADDRESS, received);
@@ -392,6 +392,7 @@ void loop() {
     currentLed = (currentLed + 1) % NUM_LEDS;
     delay(50);
   }
+/*
 
   if(currentColor == 19){
 		for (int i = 0; i < NUM_LEDS; i++) {
@@ -483,7 +484,10 @@ void loop() {
 			return;
 		}
 	}
+	*/
 }
+
+//----- FUNCTIONS -----//
 
 // Needed? Not doing anything?
 void stopAnimation(){						// ???
