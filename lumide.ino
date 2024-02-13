@@ -154,7 +154,7 @@ void loop() {
 
 	// TESTING PURPOSES
 	if (true) {
-		received = '5';
+		received = '6';
 
 		// Static one color
     if (received == 'r') {
@@ -313,23 +313,14 @@ void loop() {
 		hue++;
 	}
 
-	// Blackening mono color upwards
+	// Pushing colors upwards
 	if (fx == 5){
-		for (int i = 0; i < NUM_LEDS; i++){
+		EmitPushDownward (leds, hue);
+
+		// Used to change colors:
+		hue += 10;
+		if (hue >= 256) {
 			hue = 0;
-			saturation = 255;
-			brightness = 255;
-			leds[i] = CHSV(hue, saturation, brightness);
-		}
-		FastLED.show();
-		hue++;
-		color_delay = 30;
-		chase_delay = 50;
-		delay(color_delay);
-		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CRGB::Black;
-			FastLED.show();
-			delay(chase_delay);
 		}
 	}
 
@@ -466,5 +457,22 @@ void EmitPulsatingRainbow (CRGB* target_array, uint8_t hue) {
 	}
 	FastLED.show();
 	delay(10);
+}
+
+void EmitPushDownward (CRGB* target_array, uint8_t hue) {
+	for (int i = 0; i < NUM_LEDS; i++) {
+		saturation = 255;
+		brightness = 255;
+		target_array[i] = CHSV(hue, saturation, brightness);
+	}
+	FastLED.show();
+	color_delay = 30;
+	chase_delay = 50;
+	delay(color_delay);
+	for (int i = 0; i < NUM_LEDS; i++) {
+		target_array[i] = CRGB::Black;
+		FastLED.show();
+		delay(chase_delay);
+	}
 }
 
