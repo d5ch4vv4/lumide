@@ -154,7 +154,7 @@ void loop() {
 
 	// TESTING PURPOSES
 	if (true) {
-		received = '7';
+		received = '5';
 
 		// Static one color
     if (received == 'r') {
@@ -287,81 +287,30 @@ void loop() {
     }
 	}
 
-	// Upwards moving rainbow effect
+	// Upwards moving rainbow
 	if (fx == 1) {
-		hue = millis() / 7;		// FastLED milisecond counter?
-		saturation = 255;
-		brightness = 255;
-		// Representation of an HSV pixel:
-		leds[current_led] = CHSV(hue, saturation, brightness);
-		FastLED.show();
 		current_led = (current_led + 1) % NUM_LEDS;
-		delay(50);
+		EmitUpwardsMovingRainbow (leds, current_led);
 	}
 
-	// Rainbow Lava effect DOES NOT WORK ANYMORE
+	// Downward moving rainbow
 	if (fx == 2){
-		/*
-		initial_hue = 0;
-		saturation = 255;
-		brightness = 255;
-		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CHSV(initial_hue + (i * 256 / NUM_LEDS), saturation, brightness);
-		}
-		FastLED.show();
-		hue++;
-		if (initial_hue >= 256) {
-			initial_hue = 0;
-		}
-		fade_amount = 255;
-		fadeToBlackBy(leds, NUM_LEDS, fade_amount);
-		delay(10);
-		*/
-		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CHSV(hue + (i * 256 / NUM_LEDS), 255, 255);
-		}
-		FastLED.show();
+		EmitDownwardMovingRainbow (leds, hue);
 		hue++;
 		if (hue >= 256) {
 			hue = 0;
 		}
-		fadeToBlackBy(leds, NUM_LEDS, fade_amount);
-		delay(10);
 	}
 
 	// Fading through rainbow
-	if(fx == 3){
-		fade_amount = 10;
-		fadeToBlackBy(leds, NUM_LEDS, fade_amount);
-		for (int i = 0; i < NUM_LEDS; i++){
-			index = millis() / 30 + i * 2;
-			brightness = 255;
-			leds[i] = ColorFromPalette(palette, index, brightness);
-		}
-		FastLED.show();
-		delay(30);
+	if(fx == 3) {
+		EmitRainbowLava (leds, palette);
 	}
 
-	// Seems like Effect 3 but faster? DOES NOT WORK ANYMORE
+	// Pulsating rainbow
 	if (fx == 4){
-		/*
-		hue = 0;
-		saturation = 255;
-		brightness = 255;
-		for (int i = 0; i < NUM_LEDS; i++){
-			leds[i] = CHSV(hue, saturation, brightness);
-		}
-		FastLED.show();
+		EmitPulsatingRainbow (leds, hue);
 		hue++;
-		delay(10);
-		*/
-		static uint8_t hue = 0;
-		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CHSV(hue, 255, 255);
-		}
-		FastLED.show();
-		hue++;
-		delay(10);
 	}
 
 	// Blackening mono color upwards
@@ -473,10 +422,49 @@ void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
 	FastLED.show();
 }
 
-void EmitRainbow (CRGB *target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
+void EmitRainbow (CRGB* target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
 // Emit "Rainbow"
 	fx = 0;
 	fill_rainbow (target_array, num_leds, initial_hue, delta_hue);
 	FastLED.show();
+}
+
+void EmitUpwardsMovingRainbow (CRGB* target_array, int current_led) {
+	hue = millis() / 7;
+	saturation = 255;
+	brightness = 255;
+	target_array[current_led] = CHSV (hue, saturation, brightness);
+	FastLED.show();
+	delay(50);
+}
+
+void EmitDownwardMovingRainbow (CRGB* target_array, uint8_t hue) {
+	for (int i = 0; i < NUM_LEDS; i++) {
+		leds[i] = CHSV (hue + (i * 256 / NUM_LEDS), 255, 255);
+	}
+	FastLED.show();
+	int fade_amount = 255;
+	fadeToBlackBy(target_array, NUM_LEDS, fade_amount);
+	delay(10);
+}
+
+void EmitRainbowLava (CRGB* target_array, CRGBPalette16 palette) {
+	int fade_amount = 10;
+	fadeToBlackBy(target_array, NUM_LEDS, fade_amount);
+	for (int i = 0; i < NUM_LEDS; i++) {
+		uint8_t index = millis() / 30 + i *2;
+		uint8_t brightness = 255;
+		target_array[i] = ColorFromPalette(palette, index, brightness);
+	}
+	FastLED.show();
+	delay(30);
+}
+
+void EmitPulsatingRainbow (CRGB* target_array, uint8_t hue) {
+	for (int i = 0; i < NUM_LEDS; i++) {
+		target_array[i] = CHSV (hue, 255, 255);
+	}
+	FastLED.show();
+	delay(10);
 }
 
