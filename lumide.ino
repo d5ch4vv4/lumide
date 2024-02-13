@@ -9,20 +9,20 @@
 #include <EEPROM.h>
 
 #define LED_PIN 5								// Data Pin
-#define NUM_LEDS 12
-#define BAUD_RATE 9600
-#define EEPROM_ADDRESS 0
+#define NUM_LEDS 12							// Number of LEDs
+#define BAUD_RATE 9600					// Symbol rate
+#define EEPROM_ADDRESS 0				// Memory address
 
 
 CRGB leds[NUM_LEDS];						// Array to set/clear led data
-CRGB color = CRGB::White;
-CRGBPalette16 palette = RainbowColors_p;
-boolean animationRunning = true;			// USED FOR WHAT AGAIN?
-SoftwareSerial BTSerial(0, 1); // RX | TX
-char last_color = 'r';
-int fx = 0;										// Used to start moving FX
+SoftwareSerial BTSerial(0, 1); 	// RX | TX
+char last_color = 'r';					// Default: red
+char received = 0;							// Data from Bluetooth
 
-int currentColor = 0;
+// Used for FX
+int fx = 0;										// Default: no moving fx
+
+
 int currentLed = 0;
 int currentLed23 = 0;					// Used in one func, what for?
 int hue = 0;									// hue of red is 0?
@@ -31,6 +31,8 @@ int fadeAmount23 = 255;
 int Chase_Delay = 50;					// Used once?
 int Color_Delay = 30;					// Used once?
 int delayTime = 30;						// Used twice?
+CRGB color = CRGB::White;				//?????
+CRGBPalette16 palette = RainbowColors_p;
 
 void setup() {
 	// Tell lib about:
@@ -106,25 +108,25 @@ void setup() {
 
 		// Moving Effects
     case '1':
-      currentColor = 18;
+      fx = 1;
       break;
     case '2':
-      currentColor = 19;
+      fx = 2;
       break;
     case '3':
-      currentColor = 20;
+      fx = 3;
       break;
     case '4':
-      currentColor = 21;
+      fx = 4;
       break;
     case '5':
-      currentColor = 22;
+      fx = 5;
       break;
     case '6':
-      currentColor = 23;
+      fx = 6;
       break;
     case '7' :
-      currentColor = 24;
+      fx = 7;
       break;
 
 	 // Default
@@ -141,8 +143,8 @@ void loop() {
 
   if (BTSerial.available()) {
 
-    char received = BTSerial.read();		// Define at top?
-
+    received = BTSerial.read();
+		
 		// Static one color
     if (received == 'r') {
 			EmitMonoColor (CRGB::Red);
@@ -233,50 +235,49 @@ void loop() {
 			EmitRainbow (leds, NUM_LEDS, 0, 7);
 			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("Rainbow is activated");
+			delay(10);
     }
 
 		// Setup for moving Effects
 		else if (received == '1') {
 			fx = 1;
-      Serial.println("1");
 			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 1: Upwards moving rainbow");
     }
 		else if (received == '2') {
-      currentColor = 19;
-      Serial.println("2");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '3'){
-      currentColor = 20;
-      Serial.println("3");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '4'){
-      currentColor = 21;
-      Serial.println("4");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '5'){
-      currentColor = 22;
-      Serial.println("5");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '6'){
-      currentColor = 23;
-      Serial.println("6");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;
-    } else if (received == '7'){
-      currentColor = 24;
-      Serial.println("7");
-      EEPROM.write(EEPROM_ADDRESS, received);
-      last_color = received;      
+			fx = 2;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 2: Rainbow Lava");
+    }
+		else if (received == '3'){
+			fx = 3;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 3");
+    }
+		else if (received == '4'){
+			fx = 4;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 4");
+    }
+		else if (received == '5'){
+			fx = 5;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 5");
+    }
+		else if (received == '6'){
+			fx = 6;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 6");
+    }
+		else if (received == '7'){
+			fx = 7;
+			UpdateInitials (EEPROM_ADDRESS, received);
+      Serial.println("Effect 7");
     }
 	}
-// ================================
-	// Switch the following to cases?
 
-	if(currentColor == 18){
+	// Upwards moving rainbow effect
+	if (fx == 1) {
 		// CHSV(uint8_t input_hue, uint8_t input_saturation,
 		//		  uint8_t input_value)
 		// input_value = brightness
@@ -286,8 +287,9 @@ void loop() {
 		currentLed = (currentLed + 1) % NUM_LEDS;
 		delay(50);
 	}
-/*
-	if(currentColor == 19){
+
+	// Rainbow Lava effect
+	if (fx == 2){
 		for (int i = 0; i < NUM_LEDS; i++) {
 			leds[i] = CHSV(hue + (i * 256 / NUM_LEDS), 255, 255);
 		}
@@ -300,7 +302,8 @@ void loop() {
 		delay(10);
 	}
 
-	if(currentColor == 20){
+	// Fading through rainbow
+	if(fx == 3){
 		fadeToBlackBy(leds, NUM_LEDS, 10);
 		for (int i = 0; i < NUM_LEDS; i++){
 			leds[i] = ColorFromPalette(palette, millis() / 30 + i * 2, 255);
@@ -309,7 +312,8 @@ void loop() {
 		delay(30);
 	}
 
-	if (currentColor == 21){
+	// Seems like Effect 3 but faster?
+	if (fx == 4){
 		static uint8_t hue = 0;							// why defined again?
 		for (int i = 0; i < NUM_LEDS; i++){
 			leds[i] = CHSV(hue, 255, 255);
@@ -319,7 +323,8 @@ void loop() {
 		delay(10);
 	}
 
-	if (currentColor == 22){
+	// Blackening mono color upwards
+	if (fx == 5){
 		static uint8_t hue = 0;
 		for (int i = 0; i < NUM_LEDS; i++){
 			leds[i] = CHSV(hue, 255, 255);
@@ -334,7 +339,8 @@ void loop() {
 		}
 	}
 
-	if (currentColor == 23){
+	// Moving rainbow stripe upwards
+	if (fx == 6){
 		fill_solid(leds, NUM_LEDS, CRGB::Black);
 		for (int i = 0; i < NUM_LEDS; i++) {
 			leds[currentLed23] = CHSV(millis() / 7, 255, 255);
@@ -354,7 +360,8 @@ void loop() {
 		}
 	}
 
-	if (currentColor == 24){
+	// Blue stripe moving over green one upwards
+	if (fx == 7){
 		CRGB wipeColor = CRGB::Blue;
 		for(int i = 0; i < NUM_LEDS; i++) {
 			leds[i] = wipeColor;
@@ -362,9 +369,6 @@ void loop() {
 			delay(50);
 		}
 
-		if(!animationRunning){				// ???
-			return;
-		}
 		wipeColor = CRGB::Green;
 
 		for(int i = 0; i < NUM_LEDS; i++) {
@@ -372,33 +376,27 @@ void loop() {
 			FastLED.show();
 			delay(50);
 		}
-
-		if(!animationRunning){
-			return;
-		}
 	}
-	*/
 }
 
-//----- FUNCTIONS -----//
 
-// Needed? Not doing anything?
-void stopAnimation(){						// ???
-  animationRunning = false;
-}
+//--------- FUNCTIONS ---------//
 
-// Set all LEDs to a given color
+
 void setMonoColor (CRGB pixel_color) {
+// Set all LEDs to a given color
+	fx = 0;
 	for (int i = 0; i < NUM_LEDS; i++) {
 		leds[i] = pixel_color;
 	}
 }
 
-// Set half of LEDs to one color, the other half to another
 void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+// Set half of LEDs to one color, the other half to another
+	fx = 0;
 	for (int i = 0; i < NUM_LEDS; i++) {
-		// Use some factoring variable instead of /2?
 		if (i >= 0 && i < NUM_LEDS / 2) {
+		// Use some factoring variable instead of /2?
 			leds[i] = pixel_color_bot;
 		}
 		else {
@@ -407,27 +405,27 @@ void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
 	}
 }
 
-// Update Memory and last_color
 void UpdateInitials (int eeprom_address, char value) {
+// Update Memory and last_color
 	EEPROM.update (eeprom_address, value);
 	last_color = value;
 }
 
-// All LEDs emit same color
 void EmitMonoColor (CRGB pixel_color) {
+// All LEDs emit same color
 	setMonoColor (pixel_color);
 	FastLED.show();
 }
 
-// Half of LEDs emit one color, other half another
 void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+// Half of LEDs emit one color, other half another
 	setDualHorizontal (pixel_color_bot, pixel_color_top);
 	FastLED.show();
 }
 
-// Emit "Rainbow"
 void EmitRainbow (CRGB *target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
+// Emit "Rainbow"
+	fx = 0;
 	fill_rainbow (target_array, num_leds, initial_hue, delta_hue);
 	FastLED.show();
-	delay(10);
 }
