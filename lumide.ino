@@ -13,6 +13,7 @@
 #define BAUD_RATE 9600					// Symbol rate
 #define EEPROM_ADDRESS 0				// Memory address
 
+// uint16_t  num_leds 12				// instead of NUM_LEDS?
 
 CRGB leds[NUM_LEDS];						// Array to set/clear led data
 SoftwareSerial BTSerial(0, 1); 	// RX | TX
@@ -21,18 +22,24 @@ char received = 0;							// Data from Bluetooth
 
 // Used for FX
 int fx = 0;										// Default: no moving fx
+uint8_t initial_hue = 0;
+uint8_t input_hue = 0;
+uint8_t input_saturation = 255;
+uint8_t input_brightness = 255;		// Brightness
+//uint8_t fade_amount = 255;		// instead of fadeAmount ?
 
+// Used for "Fading through rainbow"
+CRGBPalette16 palette = RainbowColors_p;
+uint8_t index = 0;
+uint8_t brightness = 255;
 
 int currentLed = 0;
-int currentLed23 = 0;					// Used in one func, what for?
 int hue = 0;									// hue of red is 0?
 int fadeAmount = 255;
-int fadeAmount23 = 255;
-int Chase_Delay = 50;					// Used once?
-int Color_Delay = 30;					// Used once?
+unsigned long color_delay = 30;		// uint32_t ?
+unsigned long chase_delay = 50;		// uint32_t ?
 int delayTime = 30;						// Used twice?
-CRGB color = CRGB::White;				//?????
-CRGBPalette16 palette = RainbowColors_p;
+CRGB wipeColor = CRGB::Blue;
 
 void setup() {
 	// Tell lib about:
@@ -278,81 +285,101 @@ void loop() {
 
 	// Upwards moving rainbow effect
 	if (fx == 1) {
-		// CHSV(uint8_t input_hue, uint8_t input_saturation,
-		//		  uint8_t input_value)
-		// input_value = brightness
-		// -> Representation of an HSV pixel
-		leds[currentLed] = CHSV(millis() / 7, 255, 255);
+		input_hue = millis() / 7;		// FastLED milisecond counter?
+		input_saturation = 255;
+		input_brightness = 255;
+		// Representation of an HSV pixel:
+		leds[currentLed] = CHSV(input_hue, input_saturation, input_brightness);
 		FastLED.show();
 		currentLed = (currentLed + 1) % NUM_LEDS;
 		delay(50);
 	}
 
-	// Rainbow Lava effect
+	// Rainbow Lava effect DOES NOT WORK ANYMORE
 	if (fx == 2){
+		initial_hue = 0;
+		input_saturation = 255;
+		input_brightness = 255;
 		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = CHSV(hue + (i * 256 / NUM_LEDS), 255, 255);
+			leds[i] = CHSV(initial_hue + (i * 256 / NUM_LEDS),
+										 input_saturation,
+										 input_brightness);
 		}
 		FastLED.show();
 		hue++;
-		if (hue >= 256) {
-			hue = 0;
+		if (initial_hue >= 256) {
+			initial_hue = 0;
 		}
+		fadeAmount = 255;
 		fadeToBlackBy(leds, NUM_LEDS, fadeAmount);
 		delay(10);
 	}
 
 	// Fading through rainbow
 	if(fx == 3){
-		fadeToBlackBy(leds, NUM_LEDS, 10);
+		fadeAmount = 10;
+		fadeToBlackBy(leds, NUM_LEDS, fadeAmount);
 		for (int i = 0; i < NUM_LEDS; i++){
-			leds[i] = ColorFromPalette(palette, millis() / 30 + i * 2, 255);
+			index = millis() / 30 + i * 2;
+			brightness = 255;
+			leds[i] = ColorFromPalette(palette, index, brightness);
 		}
 		FastLED.show();
 		delay(30);
 	}
 
-	// Seems like Effect 3 but faster?
+	// Seems like Effect 3 but faster? DOES NOT WORK ANYMORE
 	if (fx == 4){
-		static uint8_t hue = 0;							// why defined again?
+		input_hue = 0;
+		input_saturation = 255;
+		input_brightness = 255;
 		for (int i = 0; i < NUM_LEDS; i++){
-			leds[i] = CHSV(hue, 255, 255);
+			leds[i] = CHSV(input_hue, input_saturation, input_brightness);
 		}
 		FastLED.show();
-		hue++;
+		input_hue++;
 		delay(10);
 	}
 
 	// Blackening mono color upwards
 	if (fx == 5){
-		static uint8_t hue = 0;
 		for (int i = 0; i < NUM_LEDS; i++){
-			leds[i] = CHSV(hue, 255, 255);
+			input_hue = 0;
+			input_saturation = 255;
+			input_brightness = 255;
+			leds[i] = CHSV(input_hue, input_saturation, input_brightness);
 		}
 		FastLED.show();
-		hue++;
-		delay(Color_Delay);
+		input_hue++;
+		color_delay = 30;
+		chase_delay = 50;
+		delay(color_delay);
 		for (int i = 0; i < NUM_LEDS; i++) {
 			leds[i] = CRGB::Black;
 			FastLED.show();
-			delay(Chase_Delay);
+			delay(chase_delay);
 		}
 	}
 
 	// Moving rainbow stripe upwards
 	if (fx == 6){
+		// Fill range of LEDs with a solid color
 		fill_solid(leds, NUM_LEDS, CRGB::Black);
 		for (int i = 0; i < NUM_LEDS; i++) {
-			leds[currentLed23] = CHSV(millis() / 7, 255, 255);
+			input_hue = millis() / 7;
+			input_saturation = 255;
+			input_brightness = 255;
+			leds[currentLed] = CHSV(input_hue, input_saturation, input_brightness);
 			FastLED.show();
 			delay(delayTime);
-			currentLed23 = (currentLed23 + 1) % NUM_LEDS;
+			currentLed = (currentLed + 1) % NUM_LEDS;
 			leds[i] = CRGB::Black;
 		}
 
-		for (int j = 255; j >= 0; j -= fadeAmount23) {
+		// change j to uint8_t limit?
+		for (int j = 255; j >= 0; j -= fadeAmount) {
 			for (int k = 0; k < NUM_LEDS; k++) {
-				leds[k].fadeToBlackBy(fadeAmount23);
+				leds[k].fadeToBlackBy(fadeAmount);
 				leds[k].maximizeBrightness(j);
 			}
 			FastLED.show();
@@ -362,7 +389,7 @@ void loop() {
 
 	// Blue stripe moving over green one upwards
 	if (fx == 7){
-		CRGB wipeColor = CRGB::Blue;
+		wipeColor = CRGB::Blue;
 		for(int i = 0; i < NUM_LEDS; i++) {
 			leds[i] = wipeColor;
 			FastLED.show();
