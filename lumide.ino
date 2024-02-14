@@ -103,7 +103,7 @@ void setup() {
 			setDualHorizontal (CRGB::Yellow, CRGB::Magenta);
 			break;
 
-		// Rainbow
+		// Static rainbow
     case 'p': {
 			int initialHue = 0;
 			int deltaHue = 7;
@@ -111,7 +111,7 @@ void setup() {
 			}
       break;
 
-		// Moving Effects
+		// Moving FX
     case '1':
       fx = 1;
       break;
@@ -154,7 +154,7 @@ void loop() {
 
 	// TESTING PURPOSES
 	if (true) {
-		received = '6';
+		received = '7';
 
 		// Static one color
     if (received == 'r') {
@@ -241,7 +241,7 @@ void loop() {
       Serial.println("LEDs are set to Yellow/Magenta");
     }
 
-		// Rainbow
+		// Static rainbow
 		else if (received == 'p'){
 			EmitRainbow (leds, NUM_LEDS, 0, 7);
 			UpdateInitials (EEPROM_ADDRESS, received);
@@ -253,53 +253,48 @@ void loop() {
 		else if (received == '1') {
 			fx = 1;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 1: Upwards moving rainbow");
+      Serial.println("Effect 1: Upward moving rainbow.");
     }
 		else if (received == '2') {
 			fx = 2;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 2: Rainbow Lava");
+      Serial.println("Effect 2: Downward moving rainbow.");
     }
 		else if (received == '3'){
 			fx = 3;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 3");
+      Serial.println("Effect 3: Raibow lava.");
     }
 		else if (received == '4'){
 			fx = 4;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 4");
+      Serial.println("Effect 4: Pulsating rainbow.");
     }
 		else if (received == '5'){
 			fx = 5;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 5");
+      Serial.println("Effect 5: Pushing colors downward.");
     }
 		else if (received == '6'){
 			fx = 6;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 6");
+      Serial.println("Effect 6: Rainbow stripe moving upward.");
     }
 		else if (received == '7'){
 			fx = 7;
 			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 7");
+      Serial.println("Effect 7: Colored stripe moves upwards over another.");
     }
 	}
 
 	// Upwards moving rainbow
 	if (fx == 1) {
-		current_led = (current_led + 1) % NUM_LEDS;
-		EmitUpwardsMovingRainbow (leds, current_led);
+		EmitUpwardMovingRainbow (leds);
 	}
 
 	// Downward moving rainbow
 	if (fx == 2){
-		EmitDownwardMovingRainbow (leds, hue);
-		hue++;
-		if (hue >= 256) {
-			hue = 0;
-		}
+		EmitDownwardMovingRainbow (leds);
 	}
 
 	// Fading through rainbow
@@ -309,63 +304,22 @@ void loop() {
 
 	// Pulsating rainbow
 	if (fx == 4){
-		EmitPulsatingRainbow (leds, hue);
-		hue++;
+		EmitPulsatingRainbow (leds);
 	}
 
 	// Pushing colors upwards
 	if (fx == 5){
-		EmitPushDownward (leds, hue);
-
-		// Used to change colors:
-		hue += 10;
-		if (hue >= 256) {
-			hue = 0;
-		}
+		EmitPushDownward (leds);
 	}
 
 	// Moving rainbow stripe upwards
 	if (fx == 6){
-		// Fill range of LEDs with a solid color
-		fill_solid(leds, NUM_LEDS, CRGB::Black);
-		for (int i = 0; i < NUM_LEDS; i++) {
-			hue = millis() / 7;
-			saturation = 255;
-			brightness = 255;
-			leds[current_led] = CHSV(hue, saturation, brightness);
-			FastLED.show();
-			delay(delay_time);
-			current_led = (current_led + 1) % NUM_LEDS;
-			leds[i] = CRGB::Black;
-		}
-
-		// change j to uint8_t limit?
-		for (int j = 255; j >= 0; j -= fade_amount) {
-			for (int k = 0; k < NUM_LEDS; k++) {
-				leds[k].fadeToBlackBy(fade_amount);
-				leds[k].maximizeBrightness(j);
-			}
-			FastLED.show();
-			delay(delay_time);
-		}
+		EmitRainbowStripeUpwards (leds);
 	}
 
 	// Blue stripe moving over green one upwards
 	if (fx == 7){
-		wipe_color = CRGB::Blue;
-		for(int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = wipe_color;
-			FastLED.show();
-			delay(50);
-		}
-
-		wipe_color = CRGB::Green;
-
-		for(int i = 0; i < NUM_LEDS; i++) {
-			leds[i] = wipe_color;
-			FastLED.show();
-			delay(50);
-		}
+		EmitUpwardMovingStripes (leds, CRGB::Blue, CRGB::Green);
 	}
 }
 
@@ -420,22 +374,31 @@ void EmitRainbow (CRGB* target_array, int num_leds, uint8_t initial_hue, uint8_t
 	FastLED.show();
 }
 
-void EmitUpwardsMovingRainbow (CRGB* target_array, int current_led) {
+void EmitUpwardMovingRainbow (CRGB* target_array) {
+	static uint8_t current_led = 0;
+	if (current_led > NUM_LEDS)
+		current_led	= 0;
 	hue = millis() / 7;
 	saturation = 255;
 	brightness = 255;
 	target_array[current_led] = CHSV (hue, saturation, brightness);
 	FastLED.show();
+	current_led = (current_led + 1) % NUM_LEDS;
 	delay(50);
 }
 
-void EmitDownwardMovingRainbow (CRGB* target_array, uint8_t hue) {
+void EmitDownwardMovingRainbow (CRGB* target_array) {
+	static uint8_t hue = 0;
+	if (hue >= 256) {
+		hue = 0;
+	}
 	for (int i = 0; i < NUM_LEDS; i++) {
 		leds[i] = CHSV (hue + (i * 256 / NUM_LEDS), 255, 255);
 	}
 	FastLED.show();
 	int fade_amount = 255;
 	fadeToBlackBy(target_array, NUM_LEDS, fade_amount);
+	hue++;
 	delay(10);
 }
 
@@ -451,21 +414,31 @@ void EmitRainbowLava (CRGB* target_array, CRGBPalette16 palette) {
 	delay(30);
 }
 
-void EmitPulsatingRainbow (CRGB* target_array, uint8_t hue) {
+void EmitPulsatingRainbow (CRGB* target_array) {
+	static uint8_t hue;
+	if (hue >= 256) {
+		hue = 0;
+	}
 	for (int i = 0; i < NUM_LEDS; i++) {
 		target_array[i] = CHSV (hue, 255, 255);
 	}
 	FastLED.show();
+	hue++;
 	delay(10);
 }
 
-void EmitPushDownward (CRGB* target_array, uint8_t hue) {
+void EmitPushDownward (CRGB* target_array) {
+	static uint8_t hue = 0;
+	if (hue >= 256) {
+		hue = 0;
+	}
 	for (int i = 0; i < NUM_LEDS; i++) {
 		saturation = 255;
 		brightness = 255;
 		target_array[i] = CHSV(hue, saturation, brightness);
 	}
 	FastLED.show();
+	hue += 10;
 	color_delay = 30;
 	chase_delay = 50;
 	delay(color_delay);
@@ -476,3 +449,45 @@ void EmitPushDownward (CRGB* target_array, uint8_t hue) {
 	}
 }
 
+void EmitRainbowStripeUpwards (CRGB* target_array) {
+	static uint8_t current_led = 0;
+	static uint8_t fade_amount = 255;
+	unsigned long delay_time = 30;
+
+	// Fill range of LEDs with a solid color
+	fill_solid(target_array, NUM_LEDS, CRGB::Black);
+	for (int i = 0; i < NUM_LEDS; i++) {
+		hue = millis() / 7;
+		saturation = 255;
+		brightness = 255;
+		target_array[current_led] = CHSV(hue, saturation, brightness);
+		FastLED.show();
+		delay(delay_time);
+		current_led = (current_led + 1) % NUM_LEDS;
+		target_array[i] = CRGB::Black;
+	}
+
+	// change j to uint8_t limit?
+	for (int j = 255; j >= 0; j -= fade_amount) {
+		for (int k = 0; k < NUM_LEDS; k++) {
+			target_array[k].fadeToBlackBy(fade_amount);
+			target_array[k].maximizeBrightness(j);
+		}
+		FastLED.show();
+		delay(delay_time);
+	}
+}
+
+void EmitUpwardMovingStripes (CRGB* target_array, CRGB pixel_color_1, CRGB pixel_color_2) {
+		for(int i = 0; i < NUM_LEDS; i++) {
+			leds[i] = pixel_color_1;
+			FastLED.show();
+			delay(50);
+		}
+
+		for(int i = 0; i < NUM_LEDS; i++) {
+			leds[i] = pixel_color_2;
+			FastLED.show();
+			delay(50);
+		}
+}
