@@ -1,4 +1,8 @@
 // HEADER COMMENT: 2DO!
+/*
+	Care, right now:
+		uint8_t num_leds -> for 256 LEDs max!
+*/
 
 // Include the following before FastLED.h
 // to disable pragma messages on compile
@@ -85,29 +89,29 @@ void setup() {
 
 		// Static two colors
 		case 'q':
-			setDualHorizontal (CRGB::Yellow, CRGB::Red);
+			SetDualHorizontal (CRGB::Yellow, CRGB::Red);
 			break;
 		case 'e':
-			setDualHorizontal (CRGB::Red, CRGB::Blue);
+			SetDualHorizontal (CRGB::Red, CRGB::Blue);
 			break;
 		case 't':
-			setDualHorizontal (CRGB::Blue, CRGB::Green);
+			SetDualHorizontal (CRGB::Blue, CRGB::Green);
 			break;
 		case 'z':
-			setDualHorizontal (CRGB::Magenta, CRGB::Red);
+			SetDualHorizontal (CRGB::Magenta, CRGB::Red);
 			break;
 		case 'u':
-			setDualHorizontal (CRGB::Red, CRGB::Green);
+			SetDualHorizontal (CRGB::Red, CRGB::Green);
 			break;
 		case 'i':
-			setDualHorizontal (CRGB::Yellow, CRGB::Magenta);
+			SetDualHorizontal (CRGB::Yellow, CRGB::Magenta);
 			break;
 
 		// Static rainbow
+		// XXXX NEEDS TO CONNECTED TO EmitRainbow XXXX
     case 'p': {
-			int initialHue = 0;
-			int deltaHue = 7;
-      fill_rainbow(leds, NUM_LEDS, initialHue, deltaHue);
+			uint8_t delta_hue = 35;
+      fill_rainbow(leds, NUM_LEDS, initial_hue, delta_hue);
 			}
       break;
 
@@ -154,7 +158,7 @@ void loop() {
 
 	// TESTING PURPOSES
 	if (true) {
-		received = '7';
+		received = '1';
 
 		// Static one color
     if (received == 'r') {
@@ -241,12 +245,11 @@ void loop() {
       Serial.println("LEDs are set to Yellow/Magenta");
     }
 
-		// Static rainbow
+		// Static rainbow (DOES NOT LOOK LIKE RAINBOW!?)
 		else if (received == 'p'){
-			EmitRainbow (leds, NUM_LEDS, 0, 7);
+			EmitRainbow (leds, NUM_LEDS);
 			UpdateInitials (EEPROM_ADDRESS, received);
       Serial.println("Rainbow is activated");
-			delay(10);
     }
 
 		// Setup for moving Effects
@@ -335,12 +338,15 @@ void setMonoColor (CRGB pixel_color) {
 	}
 }
 
-void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
-// Set half of LEDs to one color, the other half to another
+void SetDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+// Set part of LEDs to one color, the other to another
 	fx = 0;
+
+	// Modifier:
+	float color_ratio = 0.58;
+
 	for (int i = 0; i < NUM_LEDS; i++) {
-		if (i >= 0 && i < NUM_LEDS / 2) {
-		// Use some factoring variable instead of /2?
+		if (i >= 0 && i < NUM_LEDS * color_ratio) {
 			leds[i] = pixel_color_bot;
 		}
 		else {
@@ -351,6 +357,7 @@ void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
 
 void UpdateInitials (int eeprom_address, char value) {
 // Update Memory and last_color
+// Used to set presets values for power-on
 	EEPROM.update (eeprom_address, value);
 	last_color = value;
 }
@@ -362,25 +369,34 @@ void EmitMonoColor (CRGB pixel_color) {
 }
 
 void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
-// Half of LEDs emit one color, other half another
-	setDualHorizontal (pixel_color_bot, pixel_color_top);
+// Part of LEDs emit one color, the other part emits another
+	SetDualHorizontal (pixel_color_bot, pixel_color_top);
 	FastLED.show();
 }
 
-void EmitRainbow (CRGB* target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
-// Emit "Rainbow"
+/* XXXX DO WE WANT TO PASS NUM_LEDS? XXXX */
+void EmitRainbow (CRGB* target_array, uint8_t num_leds) {
+// Emit a "rainbow"
 	fx = 0;
-	fill_rainbow (target_array, num_leds, initial_hue, delta_hue);
+
+	// Modifiers:
+	uint8_t hue = 0;
+	uint8_t delta_hue = 35;
+
+	fill_rainbow (target_array, num_leds, hue, delta_hue);
 	FastLED.show();
 }
 
 void EmitUpwardMovingRainbow (CRGB* target_array) {
 	static uint8_t current_led = 0;
-	if (current_led > NUM_LEDS)
-		current_led	= 0;
-	hue = millis() / 7;
+
+	// Modifiers:
+	hue = millis() * 0.7;		// hue should be int? XXXX
 	saturation = 255;
 	brightness = 255;
+
+	if (current_led > NUM_LEDS)
+		current_led	= 0;
 	target_array[current_led] = CHSV (hue, saturation, brightness);
 	FastLED.show();
 	current_led = (current_led + 1) % NUM_LEDS;
