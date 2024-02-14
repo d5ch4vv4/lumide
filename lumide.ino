@@ -1,53 +1,26 @@
 // HEADER COMMENT: 2DO!
 
-// Include the following before FastLED.h
-// to disable pragma messages on compile
-#define FASTLED_INTERNAL
+#define FASTLED_INTERNAL // Include to disable pragma message
 
 #include <FastLED.h>
 #include <SoftwareSerial.h>
 #include <EEPROM.h>
 
-#define LED_PIN 5								// Data Pin
-#define NUM_LEDS 12							// Number of LEDs
-#define BAUD_RATE 9600					// Symbol rate
-#define EEPROM_ADDRESS 0				// Memory address
-
-// uint16_t  num_leds 12				// instead of NUM_LEDS?
-
-CRGB leds[NUM_LEDS];						// Array to set/clear led data
+const byte num_leds = 18;
+const char eeprom_address = 0;	// Memory Address
+CRGB leds[num_leds];						// Array to set/clear led data
 SoftwareSerial BTSerial(0, 1); 	// RX | TX
 char last_color = 'r';					// Default: red
-char received = 0;							// Data from Bluetooth
-
-// Used for FX
-int fx = 0;										// Default: no moving fx
-uint8_t initial_hue = 0;
-uint8_t hue = 0;								// red?
-uint8_t saturation = 255;
-uint8_t brightness = 255;
-//uint8_t fade_amount = 255;		// instead of fade_amount ?
-
-// Used for "Fading through rainbow"
-CRGBPalette16 palette = RainbowColors_p;
-uint8_t index = 0;
-
-int current_led = 0;
-int fade_amount = 255;
-unsigned long color_delay = 30;		// uint32_t ?
-unsigned long chase_delay = 50;		// uint32_t ?
-int delay_time = 30;						// Used twice?
-CRGB wipe_color = CRGB::Blue;
+byte fx = 0;										// Default: no moving fx
 
 void setup() {
-	// Tell lib about:
-	//		- LED strip at DATA_PIN
-	//		- Number of LEDs
-	// The leds will use the 'leds' array
-  FastLED.addLeds<WS2811, LED_PIN, GRB>(leds, NUM_LEDS);
-  BTSerial.begin(BAUD_RATE);
-  Serial.begin(BAUD_RATE);
-  last_color = EEPROM.read(EEPROM_ADDRESS);
+	const byte led_pin = 5;				// Data Pin
+	const word baud_rate = 9600;	// Symbol rate
+
+  FastLED.addLeds<WS2811, led_pin, GRB>(leds, num_leds);
+  BTSerial.begin(baud_rate);
+  Serial.begin(baud_rate);
+  last_color = EEPROM.read(eeprom_address);
   
   // Set up LEDs after Power On
   switch (last_color) {
@@ -85,30 +58,27 @@ void setup() {
 
 		// Static two colors
 		case 'q':
-			setDualHorizontal (CRGB::Yellow, CRGB::Red);
+			SetDualHorizontal (CRGB::Yellow, CRGB::Red);
 			break;
 		case 'e':
-			setDualHorizontal (CRGB::Red, CRGB::Blue);
+			SetDualHorizontal (CRGB::Red, CRGB::Blue);
 			break;
 		case 't':
-			setDualHorizontal (CRGB::Blue, CRGB::Green);
+			SetDualHorizontal (CRGB::Blue, CRGB::Green);
 			break;
 		case 'z':
-			setDualHorizontal (CRGB::Magenta, CRGB::Red);
+			SetDualHorizontal (CRGB::Magenta, CRGB::Red);
 			break;
 		case 'u':
-			setDualHorizontal (CRGB::Red, CRGB::Green);
+			SetDualHorizontal (CRGB::Red, CRGB::Green);
 			break;
 		case 'i':
-			setDualHorizontal (CRGB::Yellow, CRGB::Magenta);
+			SetDualHorizontal (CRGB::Yellow, CRGB::Magenta);
 			break;
 
 		// Static rainbow
-    case 'p': {
-			int initialHue = 0;
-			int deltaHue = 7;
-      fill_rainbow(leds, NUM_LEDS, initialHue, deltaHue);
-			}
+    case 'p':
+			SetRainbow (leds, num_leds);
       break;
 
 		// Moving FX
@@ -145,202 +115,189 @@ void setup() {
 }
 
 void loop() {
+	char received = 0;							// Data from Bluetooth
 
 /*
   if (BTSerial.available()) {
 
     received = BTSerial.read();
-*/
 
+*/
 	// TESTING PURPOSES
 	if (true) {
-		received = '7';
+		received = 'p';
 
 		// Static one color
     if (received == 'r') {
 			EmitMonoColor (CRGB::Red);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Red");
     }
 		else if (received == 'g') {
 			EmitMonoColor (CRGB::Green);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Green");
     }
 		else if (received == 'b') {
 			EmitMonoColor (CRGB::Blue);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Blue");
     } 
 		else if (received == 'c') {
 			EmitMonoColor (CRGB::Cyan);
-			UpdateInitials (EEPROM_ADDRESS, received);
-      last_color = received; 
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Cyan");
     }
 		else if (received == 'm') {
 			EmitMonoColor (CRGB::Magenta);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Magenta");
     }
 		else if (received == 'v') {
 			EmitMonoColor (CRGB::Violet);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Violet");
     }
 		else if (received == 'o') {
 			EmitMonoColor (CRGB::Orange);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Orange");
     }
 		else if (received == 'y') {
 			EmitMonoColor (CRGB::Yellow);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Yellow");
     }
 		else if (received == 'w') {
 			EmitMonoColor (CRGB::White);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to White");
     }
 		else if (received == 'x') {
 			EmitMonoColor (CRGB::Black);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("All LEDs are set to Black");
     }
 
 		// Static two colors
 		else if (received == 'q') {
 			EmitDualHorizontal (CRGB::Yellow, CRGB::Red);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Yellow/Red");
     }
 		else if (received == 'e') {
 			EmitDualHorizontal (CRGB::Red, CRGB::Blue);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Red/Blue");
     }
 		else if (received == 't') {
 			EmitDualHorizontal (CRGB::Blue, CRGB::Green);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Blue/Green");
     }
 		else if (received == 'z') {
 			EmitDualHorizontal (CRGB::Magenta, CRGB::Red);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Magenta/Red");
     }
 		else if (received == 'u') {
 			EmitDualHorizontal (CRGB::Red, CRGB::Green);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Red/Green");
     }
 		else if (received == 'i') {
 			EmitDualHorizontal (CRGB::Yellow, CRGB::Magenta);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("LEDs are set to Yellow/Magenta");
     }
 
 		// Static rainbow
 		else if (received == 'p'){
-			EmitRainbow (leds, NUM_LEDS, 0, 7);
-			UpdateInitials (EEPROM_ADDRESS, received);
+			EmitRainbow (leds);
+			UpdateInitials (eeprom_address, received);
       Serial.println("Rainbow is activated");
-			delay(10);
     }
 
 		// Setup for moving Effects
 		else if (received == '1') {
 			fx = 1;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 1: Upward moving rainbow.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 1: Emit upward moving rainbow.");
     }
 		else if (received == '2') {
 			fx = 2;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 2: Downward moving rainbow.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 2: Emit downward moving rainbow.");
     }
 		else if (received == '3'){
 			fx = 3;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 3: Raibow lava.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 3: Emit lava-like effect (rainbow colors).");
     }
 		else if (received == '4'){
 			fx = 4;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 4: Pulsating rainbow.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 4: Emit pulsating rainbow.");
     }
 		else if (received == '5'){
 			fx = 5;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 5: Pushing colors downward.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 5: Emit a color pushing darkness away.");
     }
 		else if (received == '6'){
 			fx = 6;
-			UpdateInitials (EEPROM_ADDRESS, received);
-      Serial.println("Effect 6: Rainbow stripe moving upward.");
+			UpdateInitials (eeprom_address, received);
+      Serial.println("Effect 6: Emit stripe moving upward (rainbow).");
     }
 		else if (received == '7'){
 			fx = 7;
-			UpdateInitials (EEPROM_ADDRESS, received);
+			UpdateInitials (eeprom_address, received);
       Serial.println("Effect 7: Colored stripe moves upwards over another.");
     }
 	}
 
-	// Upwards moving rainbow
+	// Moving FX:
 	if (fx == 1) {
-		EmitUpwardMovingRainbow (leds);
+		EmitUpwardMovingRainbow (leds, num_leds);
 	}
-
-	// Downward moving rainbow
 	if (fx == 2){
-		EmitDownwardMovingRainbow (leds);
+		EmitDownwardMovingRainbow (leds, num_leds);
 	}
-
-	// Fading through rainbow
 	if(fx == 3) {
-		EmitRainbowLava (leds, palette);
+		CRGBPalette16 palette = RainbowColors_p;
+		EmitRainbowLava (leds, num_leds, palette);
 	}
-
-	// Pulsating rainbow
 	if (fx == 4){
 		EmitPulsatingRainbow (leds);
 	}
-
-	// Pushing colors upwards
 	if (fx == 5){
 		EmitPushDownward (leds);
 	}
-
-	// Moving rainbow stripe upwards
 	if (fx == 6){
 		EmitRainbowStripeUpwards (leds);
 	}
-
-	// Blue stripe moving over green one upwards
 	if (fx == 7){
-		EmitUpwardMovingStripes (leds, CRGB::Blue, CRGB::Green);
+		EmitUpwardMovingStripe (leds, CRGB::Blue, CRGB::Green);
 	}
 }
-
-
-//--------- FUNCTIONS ---------//
-
-
+// XXXX
 void setMonoColor (CRGB pixel_color) {
 // Set all LEDs to a given color
 	fx = 0;
-	for (int i = 0; i < NUM_LEDS; i++) {
+	for (int i = 0; i < num_leds; i++) {
 		leds[i] = pixel_color;
 	}
 }
 
-void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
-// Set half of LEDs to one color, the other half to another
+void SetDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
+// Set part of LEDs to one color, the other to another
 	fx = 0;
-	for (int i = 0; i < NUM_LEDS; i++) {
-		if (i >= 0 && i < NUM_LEDS / 2) {
-		// Use some factoring variable instead of /2?
+
+	// Modifier:
+	float color_ratio = 0.4;
+
+	for (int i = 0; i < num_leds; i++) {
+		if (i >= 0 && i < num_leds * color_ratio) {
 			leds[i] = pixel_color_bot;
 		}
 		else {
@@ -349,8 +306,18 @@ void setDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
 	}
 }
 
+void SetRainbow (CRGB* target_array, uint8_t num_leds) {
+// Set LEDs to a static rainbow effect
+	// Modifiers:
+	uint8_t hue = 0;
+	uint8_t delta_hue = 35;
+
+	fill_rainbow (leds, num_leds, hue, delta_hue);
+}
+
 void UpdateInitials (int eeprom_address, char value) {
 // Update Memory and last_color
+// Used to set presets values for power-on
 	EEPROM.update (eeprom_address, value);
 	last_color = value;
 }
@@ -362,87 +329,122 @@ void EmitMonoColor (CRGB pixel_color) {
 }
 
 void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
-// Half of LEDs emit one color, other half another
-	setDualHorizontal (pixel_color_bot, pixel_color_top);
+// Part of LEDs emit one color, the other part emits another
+	SetDualHorizontal (pixel_color_bot, pixel_color_top);
 	FastLED.show();
 }
 
-void EmitRainbow (CRGB* target_array, int num_leds, uint8_t initial_hue, uint8_t delta_hue) {
-// Emit "Rainbow"
+// XXXX Link this somehow to SetRainbow?
+void EmitRainbow (CRGB* target_array) {
+// Emit a rainbow
 	fx = 0;
-	fill_rainbow (target_array, num_leds, initial_hue, delta_hue);
+
+	// Modifiers:
+	uint8_t hue = 0;
+	uint8_t delta_hue = 35;
+
+	fill_rainbow (target_array, num_leds, hue, delta_hue);
 	FastLED.show();
 }
 
-void EmitUpwardMovingRainbow (CRGB* target_array) {
+void EmitUpwardMovingRainbow (CRGB* target_array, uint8_t num_leds) {
+// Emit an upward moving rainbow
 	static uint8_t current_led = 0;
-	if (current_led > NUM_LEDS)
+
+	// Modifiers:
+	uint8_t hue = millis() * 0.7;		// hue should be int? XXXX
+	uint8_t saturation = 255;
+	uint8_t brightness = 255;
+	unsigned long delay_time = 50;	// ms
+
+	if (current_led > num_leds) {
 		current_led	= 0;
-	hue = millis() / 7;
-	saturation = 255;
-	brightness = 255;
+	}
 	target_array[current_led] = CHSV (hue, saturation, brightness);
 	FastLED.show();
-	current_led = (current_led + 1) % NUM_LEDS;
-	delay(50);
+	current_led = (current_led + 1) % num_leds;
+	delay(delay_time);
 }
 
-void EmitDownwardMovingRainbow (CRGB* target_array) {
+void EmitDownwardMovingRainbow (CRGB* target_array, uint8_t num_leds) {
+// Emit an downward moving rainbow
 	static uint8_t hue = 0;
+
+	// Modfiers:
+	unsigned long delay_time = 10;
+	uint8_t fade_amount = 255;		// Whats fade fore again?
+
 	if (hue >= 256) {
 		hue = 0;
 	}
-	for (int i = 0; i < NUM_LEDS; i++) {
-		leds[i] = CHSV (hue + (i * 256 / NUM_LEDS), 255, 255);
+	for (int i = 0; i < num_leds; i++) {
+		leds[i] = CHSV (hue + (i * 256 / num_leds), 255, 255);
 	}
 	FastLED.show();
-	int fade_amount = 255;
-	fadeToBlackBy(target_array, NUM_LEDS, fade_amount);
+	// The following does NOTHING? XXXX
+	fadeToBlackBy(target_array, num_leds, fade_amount);
 	hue++;
-	delay(10);
+	delay(delay_time);
 }
 
-void EmitRainbowLava (CRGB* target_array, CRGBPalette16 palette) {
-	int fade_amount = 10;
-	fadeToBlackBy(target_array, NUM_LEDS, fade_amount);
-	for (int i = 0; i < NUM_LEDS; i++) {
-		uint8_t index = millis() / 30 + i *2;
-		uint8_t brightness = 255;
+void EmitRainbowLava (CRGB* target_array, uint8_t num_leds, CRGBPalette16 palette) {
+// Emit an lava-like effect with rainbow colors
+
+	// Modifier:
+	unsigned long delay_time = 30;
+	uint8_t fade_amount = 100;
+	uint8_t brightness = 255;
+	float colorchange_speed = 0.03;
+
+	fadeToBlackBy(target_array, num_leds, fade_amount);
+	for (int i = 0; i < num_leds; i++) {
+		uint8_t index = millis() * colorchange_speed + i * 2;
 		target_array[i] = ColorFromPalette(palette, index, brightness);
 	}
 	FastLED.show();
-	delay(30);
+	delay(delay_time);
 }
 
 void EmitPulsatingRainbow (CRGB* target_array) {
+// Pulsating light going through rainbow colors
 	static uint8_t hue;
+
+	// Modifier:
+	unsigned long delay_time = 5;		// Lower is faster pulsation
+	uint8_t saturation = 255;
+	uint8_t brightness = 255;
+
 	if (hue >= 256) {
 		hue = 0;
 	}
-	for (int i = 0; i < NUM_LEDS; i++) {
-		target_array[i] = CHSV (hue, 255, 255);
+	for (int i = 0; i < num_leds; i++) {
+		target_array[i] = CHSV (hue, saturation, brightness);
 	}
 	FastLED.show();
 	hue++;
-	delay(10);
+	delay(delay_time);
 }
 
 void EmitPushDownward (CRGB* target_array) {
+// Looks like a color is pushing darkness away
 	static uint8_t hue = 0;
+
+	// Modifier:
+	unsigned long color_delay = 300;	// Higher: color persists longer
+	unsigned long chase_delay = 40;	// Lower: faster built-down of effect
+	uint8_t saturation = 255;
+	uint8_t brightness = 255;
+
 	if (hue >= 256) {
 		hue = 0;
 	}
-	for (int i = 0; i < NUM_LEDS; i++) {
-		saturation = 255;
-		brightness = 255;
+	for (int i = 0; i < num_leds; i++) {
 		target_array[i] = CHSV(hue, saturation, brightness);
 	}
 	FastLED.show();
 	hue += 10;
-	color_delay = 30;
-	chase_delay = 50;
 	delay(color_delay);
-	for (int i = 0; i < NUM_LEDS; i++) {
+	for (int i = 0; i < num_leds; i++) {
 		target_array[i] = CRGB::Black;
 		FastLED.show();
 		delay(chase_delay);
@@ -450,26 +452,33 @@ void EmitPushDownward (CRGB* target_array) {
 }
 
 void EmitRainbowStripeUpwards (CRGB* target_array) {
-	static uint8_t current_led = 0;
+// Emit an stripe that moves upwards
+// With the right settings: stripe looks like a rainbow
 	static uint8_t fade_amount = 255;
-	unsigned long delay_time = 30;
+	static uint8_t current_led = 0;
+	uint8_t hue = 0;
+
+	// Modifier:
+	unsigned long movement_speed = 90;	// Lower: faster
+	unsigned long delay_time = 65;				// Delay between cycles
+	uint8_t saturation = 255;
+	uint8_t brightness = 255;
+	float hue_modifier = 0.7;					// Lower: slower color changes
 
 	// Fill range of LEDs with a solid color
-	fill_solid(target_array, NUM_LEDS, CRGB::Black);
-	for (int i = 0; i < NUM_LEDS; i++) {
-		hue = millis() / 7;
-		saturation = 255;
-		brightness = 255;
+	fill_solid(target_array, num_leds, CRGB::Black);
+	for (int i = 0; i < num_leds; i++) {
+		hue = millis() * hue_modifier;
 		target_array[current_led] = CHSV(hue, saturation, brightness);
 		FastLED.show();
-		delay(delay_time);
-		current_led = (current_led + 1) % NUM_LEDS;
+		delay(movement_speed);
+		current_led = (current_led + 1) % num_leds;
 		target_array[i] = CRGB::Black;
 	}
 
-	// change j to uint8_t limit?
+	// WHAT EXACTLY DOES THIS DO? XXXX
 	for (int j = 255; j >= 0; j -= fade_amount) {
-		for (int k = 0; k < NUM_LEDS; k++) {
+		for (int k = 0; k < num_leds; k++) {
 			target_array[k].fadeToBlackBy(fade_amount);
 			target_array[k].maximizeBrightness(j);
 		}
@@ -478,16 +487,19 @@ void EmitRainbowStripeUpwards (CRGB* target_array) {
 	}
 }
 
-void EmitUpwardMovingStripes (CRGB* target_array, CRGB pixel_color_1, CRGB pixel_color_2) {
-		for(int i = 0; i < NUM_LEDS; i++) {
+void EmitUpwardMovingStripe (CRGB* target_array, CRGB pixel_color_1, CRGB pixel_color_2) {
+		// Modifier:
+		unsigned long delay_time = 50;
+
+		for(int i = 0; i < num_leds; i++) {
 			leds[i] = pixel_color_1;
 			FastLED.show();
-			delay(50);
+			delay(delay_time);
 		}
 
-		for(int i = 0; i < NUM_LEDS; i++) {
+		for(int i = 0; i < num_leds; i++) {
 			leds[i] = pixel_color_2;
 			FastLED.show();
-			delay(50);
+			delay(delay_time);
 		}
 }
