@@ -2,6 +2,12 @@
  * Arduino Sketch for Lamp Color Control via Bluetooth
  * 
  * 
+ * File:			lumide.ino
+ * Author1:		Andreas Berhmani (bermo@aon.at)
+ * Author2:		Rafal Fresel (fresel.rafal@gmail.com)
+ * Date:			Spring 2024
+ * 
+ * 
  * Description:
  *
  * 		This program allows control of a lamp's colors. The lamp is connected
@@ -9,85 +15,124 @@
  *		with a mobile app. The app sends commands to change the lamp's color 
  *		modes, including static colors and dynamic (moving) effects.
  * 
+ * 
  * Features:
  *
  * 		- Mono-color emission (predefined colors)
- *		- Dual-color emission mode (horizontally divided, predefined colors)
+ *		- Dual-color emission (horizontally divided, predefined colors)
  * 		- Moving effects for dynamic color changes
  * 		- Bluetooth communication with a mobile app
+ * 
  * 
  * Global Variables:
  * 
  * 		- const uint8_t num_leds
  *				- Total number of LEDs
+ * 
  *		- const char eeprom_address
  *				- Memory address
+ * 
  *		- CRGB leds[num_leds]
- *				- Array to store color data for the LED strip.
+ *				- Array to store color data for the LED strip
+ * 
  *		- SoftwareSerial BTSerial (0, 1)
  *				- Software-based serial communication channel on pins 0 (RX)
  *					and 1 (TX) of the Arduino board
+ * 
  *		- char last_color
  *				- Stored value represents a "color code"
+ *				- Defaults to 'r' (red)
+ * 
  *		- uint8_t fx
- *				- Effect control variable: 0 for static, non-zero for moving effects.
+ *				- Effect control variable: 0 for static, non-zero for moving effects
+ * 
  * 
  * Setup:
  * 
- * 		- 
+ * 		- Variables:
+ * 
+ * 				- const uint8_t led_pin
+ * 						- The pin to which the LED strip is connected
+ * 
+ *				- const uint16_t baud_rate
+ * 						- Specifies the data transfer speed or baud rate at which
+ *							communication will occur
+ * 
+ *		- Description:
+ * 
+ * 				- Configuring FastLED to communicate with a WS2811-based LED strip by
+ * 					using the addLeds function from the FastLED library.
+ *				- Initializing a serial communication for a Bluetooth module using the
+ *					begin function from the SoftwareSerial library.
+ *				- Initializing a hardware serial communication with a baud rate of
+ *					9600 baud, by making use of the begin function on the Serial
+ *					object.
+ *						- The Serial object is the name of a hardware serial object.
+ *						- Here it is used for communication over USB.
+ * 				- Retrieving a previously stored "color code" (last_color) from the
+ *					memory (EEPROM - Electrically Erasable Programmable Read-Only
+ *					Memory).
+ *						- The retrieved value is assigned to last_color, allowing the lamp
+ *							to initialize with the same color(s)/effect upon power-on that
+ *							was set before shutdown.
+ *				- Setting up LEDs by making use of a switch statement:
+ *						- Depending on the "color code" in last_color, the setup can be:
+ *								- Mono color (static)
+ *								- Dual color (static)
+ *								- Rainbow effect (static)
+ *								- A moving effect (multi-colored)
+ *						- Default is: all LEDs are red.
+ *				- Finally emit the setup with the help of the show function from the
+ *					FastLED library.
+ *
+ * 
+ * Loop:
+ * 
+ * 		- Variables:
+ * 
+ * 				- char received
+ *						- Holds data used to decide which program to run (i.e., which
+ *							color(s) are used, static or non-static)
+ *
+ *		- Description: 
+ * 
+ * 				- Reading data from a previously established Bluetooth connection
+ * 				- Depending on the received data a specific light effect is emitted:
+ *						- Mono color (static)
+ *						- Dual color (static)
+ *						- Rainbow effect (static)
+ *						- A moving effect (multi-colored)
  * 
  * 
  * Hardware:
- * - WS2811 LED strip for colorful illumination (https://example.com/ws2811-info)
- * - Teensy 2.0 for Arduino-based control (https://example.com/teensy-info)
+ * 
+ * 		- WS2811 LED strip
+ *				http://fastled.io/docs/class_w_s2811.html
+ * 
+ * 		- Teensy 2.0
+ *				https://deskthority.net/wiki/Teensy
+ * 
  * 
  * Libraries:
- * - SoftwareSerial.h for Bluetooth communication (https://example.com/softwareserial-info)
- * - EEPROM.h for storing configuration data:
- 				https://docs.arduino.cc/learn/built-in-libraries/eeprom/
- * - FastLED.h for controlling WS2811 LED strip (https://example.com/fastled-info)
+ * 
+ *		- SoftwareSerial.h
+ *				https://docs.arduino.cc/learn/built-in-libraries/software-serial/
+ * 
+ * 		- EEPROM.h
+ *				https://docs.arduino.cc/learn/built-in-libraries/eeprom/
+ * 
+ * 		- FastLED.h
+ *				https://www.arduino.cc/reference/en/libraries/fastled/
+ *				http://fastled.io/
+ * 
  * 
  * CRGB Information:
  * 
  * 		- CRGB is a color representation type used in FastLED library for RGB
  *			colors.
  *		- Learn more: https://github.com/FastLED/FastLED/wiki/Pixel-reference
- *				
  * 
- * Dependencies:
- * - Arduino and Bluetooth module required
- * 
- * Author: Your Name
- * Date: February 16, 2024
- * Version: 1.0
  */
-
-/**
- * File:			lumide.ino
- * Author1:		???
- * Author2:		Rafal Fresel
- * Date:			Spring 2024
- *
- *
- * Arduino Sketch for Lamp Color Control via Bluetooth
- *
- *
- * Description:
- *		
- *		This program allows control of a lamp's colors with mon
- *		
- *
- */
-// HEADER COMMENT: 2DO!
-/*
- * References:
- *		https://www.arduino.cc/reference/en/language/variables/data-types/uint8_t/
- *		https://www.arduino.cc/reference/en/language/variables/data-types/float/
- *		https://github.com/FastLED/FastLED/wiki/Pixel-reference#crgb
- *
- *		https://www.pjrc.com/store/teensy.html
-*/
-
 
 #define FASTLED_INTERNAL // Include to disable pragma message
 
@@ -96,22 +141,23 @@
 #include <EEPROM.h>
 
 const uint8_t num_leds = 18;
-const char eeprom_address = 0;	// Memory Address
-CRGB leds[num_leds];						// Array to set/clear led data
-SoftwareSerial BTSerial (0, 1); 	// RX | TX
-char last_color = 'r';					// Default: red
-uint8_t fx = 0;										// Default: no moving fx
+const char eeprom_address = 0;
+CRGB leds[num_leds];
+SoftwareSerial BTSerial (0, 1);
+char last_color = 'r';
+uint8_t fx = 0;
 
 void setup() {
-	const uint8_t led_pin = 5;				// Data Pin
-	const uint16_t baud_rate = 9600;	// Symbol rate
+	const uint8_t led_pin = 5;
+	const uint16_t baud_rate = 9600;
 
   FastLED.addLeds<WS2811, led_pin, GRB>(leds, num_leds);
   BTSerial.begin(baud_rate);
   Serial.begin(baud_rate);
+
   last_color = EEPROM.read(eeprom_address);
   
-  // Set up LEDs after Power On
+  // Set up LEDs after power On
   switch (last_color) {
 
 		// Static one color
@@ -170,7 +216,7 @@ void setup() {
 			SetRainbow ();
       break;
 
-		// Moving FX
+		// Moving effects
     case '1':
       fx = 1;
       break;
@@ -204,17 +250,11 @@ void setup() {
 }
 
 void loop() {
-	char received = 0;							// Data from Bluetooth
+	char received = 0;
 
-/*
   if (BTSerial.available()) {
 
     received = BTSerial.read();
-
-*/
-	// TESTING PURPOSES
-	if (true) {
-		received = '7';
 
 		// Static one color
     if (received == 'r') {
@@ -299,13 +339,15 @@ void loop() {
 			UpdateInitials (received);
       Serial.println("LEDs are set to Yellow/Magenta");
     }
+
+		// Static rainbow
 		else if (received == 'p'){
 			EmitRainbow ();
 			UpdateInitials (received);
       Serial.println("Rainbow is activated");
     }
 
-		// Set up moving Effects
+		// Set up moving effects
 		else if (received == '1') {
 			fx = 1;
 			UpdateInitials (received);
@@ -343,7 +385,7 @@ void loop() {
     }
 	}
 
-	// Moving FX:
+	// Moving effects:
 	if (fx == 1) {
 		EmitUpwardMovingRainbow ();
 	}
@@ -373,6 +415,7 @@ void loop() {
  *
  * This function is used to assosiate LEDs with a single color.
  * 
+ * 
  * Parameters:
  * 		- CRGB pixel_color: represents a color in RGB color space.
 
@@ -384,7 +427,7 @@ void loop() {
  * Data structures:
  *		- CRGB leds
  *				- Globally defined.
-  *				- Array that associates its elements with LEDs.
+ *				- Array that associates its elements with LEDs.
  *
  * Return values:
  *		- None.
@@ -408,6 +451,7 @@ void SetMonoColor (CRGB pixel_color) {
  *
  * A set of LEDs, given by an array, is divided into two sets.
  * One set is associated with one color, the other with another.
+ * 
  * 
  * Parameters:
  *		- CRGB pixel_color_bot
@@ -461,6 +505,7 @@ void SetDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
  *
  * This function is used to associate LEDs with a rainbow of colors.
  *
+ *
  * Parameters:
  *		- None
  * 
@@ -506,6 +551,7 @@ void SetRainbow () {
  *
  * Set preset values used after power-on.
  *
+ *
  * Parameters:
  *		- uint8_t eeprom_value
  *				- Value that is written to the EEPROM.
@@ -538,6 +584,7 @@ void UpdateInitials (uint8_t eeprom_value) {
  *
  * Let all LEDs emit the same color.
  *
+ *
  * Parameters:
  * 		- CRGB pixel_color
  *				- Represents a color in RGB color space.
@@ -566,6 +613,7 @@ void EmitMonoColor (CRGB pixel_color) {
  *
  * Split LEDs into two sets. Let one set emit one color and the other set
  * another.
+ *
  *
  * Parameters:
  *		- CRGB pixel_color_bot
@@ -598,6 +646,7 @@ void EmitDualHorizontal (CRGB pixel_color_bot, CRGB pixel_color_top) {
  *
  * Emit an rainbow of colors.
  *
+ *
  * Parameters:
  *		- None.
  *
@@ -623,6 +672,7 @@ void EmitRainbow () {
  * void EmitUpwardMovingRainbow ()
  *
  * Emit an upward moving rainbow.
+ *
  *
  * Parameters:
  *		- None.
@@ -697,6 +747,7 @@ void EmitUpwardMovingRainbow () {
  * void EmitDownwardMovingRainbow ()
  *
  * Emit an downward moving rainbow
+ *
  *
  * Parameters:
  *		- None.
@@ -779,6 +830,7 @@ void EmitDownwardMovingRainbow () {
  *
  * Emit an lava-like effect with rainbow colors.
  *
+ *
  * Parameters:
  *		- None.
  *
@@ -850,6 +902,7 @@ void EmitRainbowLava () {
  * Emit an pulsating rainbow. All LEDs take on the same color at the same
  * time. Fading through rainbow colors while pulsating.
  *
+ *
  * Parameters:
  *		- None.
  *
@@ -913,6 +966,7 @@ void EmitPulsatingRainbow () {
  *
  * Color pushes darkness away. All LEDs emit same color, then fade into
  * into darkness from the bottom to top. Color change.
+ *
  *
  * Parameters:
  *		- None.
@@ -993,6 +1047,7 @@ void EmitPushDownward () {
  * void EmitRainbowStripeUpwards ()
  *
  * Emit an stripe that looks like a rainbow moving upwards.
+ *
  *
  * Paramters:
  *		- None.
@@ -1090,6 +1145,7 @@ void EmitRainbowStripeUpwards () {
  * void EmitUpwardMovingStripe (CRGB pixel_color_1, CRGB pixel_color_2)
  *
  * Emit a color that builds up from the bottom and "pushes" the other away.
+ *
  *
  * Parameters:
  *		- CRGB pixel_color_1
